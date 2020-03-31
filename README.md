@@ -1,14 +1,13 @@
 STITCH - Sequencing To Imputation Through Constructing Haplotypes
 =================================================================
-**__Current Version: 1.6.2__**
-Release date: August 29, 2019
+**__Current Version: 1.6.3__**
+Release date: March 24, 2020
 
 [![Build Status](https://img.shields.io/travis/rwdavies/STITCH/master.svg)](https://travis-ci.org/rwdavies/STITCH/)
 
 Changes in latest version
 
-1. Change internal haplotype format (rhb)
-2. Speed up reference haplotype file loading from disk
+1. Misc minor bug fixes
 
 For details of past changes please see [CHANGELOG](CHANGELOG.md).
 
@@ -26,8 +25,8 @@ git clone --recursive https://github.com/rwdavies/STITCH.git
 cd STITCH
 ./scripts/install-dependencies.sh
 cd releases
-wget https://github.com/rwdavies/stitch/releases/download/1.6.2/STITCH_1.6.2.tar.gz ## or curl -O
-R CMD INSTALL STITCH_1.6.2.tar.gz
+wget https://github.com/rwdavies/stitch/releases/download/1.6.3/STITCH_1.6.3.tar.gz ## or curl -O
+R CMD INSTALL STITCH_1.6.3.tar.gz
 ```
 
 A quick test on real data can be performed using 

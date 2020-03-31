@@ -1172,7 +1172,8 @@ findRecombinedReadsPerSample <- function(
     method = "diploid",
     pRgivenH1_m = NULL,
     pRgivenH2_m = NULL,
-    srp = NULL
+    srp = NULL,
+    check_split_reads = FALSE
 ) {
     K <- dim(eHapsCurrent_t)[1]
     ## needs a full run
@@ -1197,12 +1198,13 @@ findRecombinedReadsPerSample <- function(
                 method = method,
                 pRgivenH1_m = pRgivenH1_m,
                 pRgivenH2_m = pRgivenH2_m,
-                srp = srp
+                srp = srp,
+                check_split_reads = check_split_reads
             )
             sampleReads <- out$sampleReads
             pRgivenH1_m <- out$pRgivenH1_m
             pRgivenH2_m <- out$pRgivenH2_m
-            srp <- srp
+            srp <- out$srp
             count <- count + as.integer(out$did_split)
         } # end of loop on reads
         new_order <- order(unlist(lapply(sampleReads,function(x) x[[2]])))        
@@ -1244,7 +1246,8 @@ split_a_read <- function(
     method,
     pRgivenH1_m,
     pRgivenH2_m,
-    srp
+    srp,
+    check_split_reads = FALSE
 ) {
 
     did_split <- FALSE
@@ -1299,14 +1302,22 @@ split_a_read <- function(
             sampleReads,
             list(new_read_2)
         )
+        if (check_split_reads) {
+            check_split_reads_function(
+                sampleRead = sampleRead,
+                new_read_1 = new_read_1,
+                new_read_2 = new_read_2,
+                grid = grid
+            )
+        }
         did_split <- TRUE
         if (method == "pseudoHaploid") {
             pRgivenH1_m[read_to_split, ] <- runif(ncol(pRgivenH1_m))
             pRgivenH2_m[read_to_split, ] <- runif(ncol(pRgivenH2_m))
-            srp[read_to_split] <- sampleReads[[read_to_split]][[2]]
+            srp[read_to_split] <- new_read_1[[2]]
             pRgivenH1_m <- rbind(pRgivenH1_m, runif(ncol(pRgivenH1_m)))
             pRgivenH2_m <- rbind(pRgivenH2_m, runif(ncol(pRgivenH2_m)))
-            srp <- c(srp, sampleReads[[length(sampleReads)]][[2]])
+            srp <- c(srp, new_read_2[[2]])
         }        
     }
 
@@ -1320,3 +1331,46 @@ split_a_read <- function(
         )
     )
 }
+
+
+check_split_reads_function <- function(sampleRead, new_read_1, new_read_2, grid) {
+    ## check J is OK
+    J <- sampleRead[[1]] + 1            
+    J1 <- new_read_1[[1]] + 1
+    J2 <- new_read_2[[1]] + 1
+    check1 <-
+        (J1 + J2) == J
+    ## check cr OK
+    cr1 <- new_read_1[[2]]
+    cr2 <- new_read_2[[2]]
+    check2 <-
+        (0 <= cr1) & 
+        (0 <= cr2) & 
+        (cr1 <= max(grid)) & 
+        (cr2 <= max(grid))
+    ## check u OK
+    u <- sampleRead[[4]] + 1            
+    u1 <- new_read_1[[4]] + 1
+    u2 <- new_read_2[[4]] + 1            
+    check3 <-
+        (sum((u != c(u1, u2))) == 0)
+    ## check bq OK
+    bq <- sampleRead[[3]] + 1            
+    bq1 <- new_read_1[[3]] + 1
+    bq2 <- new_read_2[[3]] + 1
+    check4 <- 
+        (sum((bq != c(bq1, bq2))) == 0)
+    if (!(check1 & check2 & check3 & check4)) {
+        print("sampleRead")
+        print(sampleRead)
+        print("new_read_1")
+        print(new_read_1)
+        print("new_read_2")        
+        print(new_read_2)        
+        stop("There was an error splitting a read. Please see above")
+    }
+    return(NULL)
+}
+            
+
+
